@@ -130,5 +130,26 @@ public class RoomsController : ControllerBase
 
         return Ok(rooms);
     }
+    
+    // GET: api/rooms/type/Shared
+    [HttpGet("type/{roomType}")]
+    public async Task<ActionResult<IEnumerable<Room>>> GetRoomsByType(
+        string roomType)
+    {
+        if (roomType != "Single" && roomType != "Shared")
+        {
+            return BadRequest(new
+            {
+                message = "Room type must be Single or Shared."
+            });
+        }
+
+        var rooms = await _context.Rooms
+            .Where(room => room.RoomType == roomType)
+            .ToListAsync();
+
+        return Ok(rooms);
+    }
+
 
 }
