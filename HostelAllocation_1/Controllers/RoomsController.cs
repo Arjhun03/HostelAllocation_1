@@ -150,6 +150,31 @@ public class RoomsController : ControllerBase
 
         return Ok(rooms);
     }
+    
+    
+    // GET: api/rooms/price?minFee=3000&maxFee=7000
+    [HttpGet("price")]
+    public async Task<ActionResult<IEnumerable<Room>>> GetRoomsByPrice(
+        [FromQuery] decimal minFee,
+        [FromQuery] decimal maxFee)
+    {
+        if (minFee < 0 || maxFee < minFee)
+        {
+            return BadRequest(new
+            {
+                message = "Enter a valid monthly fee range."
+            });
+        }
+
+        var rooms = await _context.Rooms
+            .Where(room =>
+                room.MonthlyFee >= minFee &&
+                room.MonthlyFee <= maxFee)
+            .ToListAsync();
+
+        return Ok(rooms);
+    }
+
 
 
 }
