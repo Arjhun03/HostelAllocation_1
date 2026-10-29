@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "V6vmtYYN22s=",
+  "success": true,
+  "projectFilePath": "/Users/arjhun_03/RiderProjects/HostelAllocation_1/HostelAllocation_1/HostelAllocation_1.csproj",
+  "expectedPackageFiles": [
+    "/Users/arjhun_03/.nuget/packages/microsoft.aspnetcore.openapi/10.0.11/microsoft.aspnetcore.openapi.10.0.11.nupkg.sha512",
+    "/Users/arjhun_03/.nuget/packages/microsoft.openapi/2.7.5/microsoft.openapi.2.7.5.nupkg.sha512"
+  ],
+  "logs": []
+}
