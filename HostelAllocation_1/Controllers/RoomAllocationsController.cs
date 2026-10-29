@@ -150,4 +150,31 @@ public class RoomAllocationsController : ControllerBase
             message = "Room vacated successfully."
         });
     }
+    
+    
+    // GET: api/roomallocations/student/1
+    [HttpGet("student/{studentId:int}")]
+    public async Task<ActionResult<IEnumerable<RoomAllocation>>>
+        GetStudentAllocationHistory(int studentId)
+    {
+        var studentExists = await _context.Students
+            .AnyAsync(student => student.Id == studentId);
+
+        if (!studentExists)
+        {
+            return NotFound(new
+            {
+                message = $"Student with ID {studentId} was not found."
+            });
+        }
+
+        var history = await _context.RoomAllocations
+            .Where(allocation => allocation.StudentId == studentId)
+            .Include(allocation => allocation.Room)
+            .OrderByDescending(allocation => allocation.AllocationDate)
+            .ToListAsync();
+
+        return Ok(history);
+    }
+
 }
