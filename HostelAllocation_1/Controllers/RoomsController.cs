@@ -174,6 +174,31 @@ public class RoomsController : ControllerBase
 
         return Ok(rooms);
     }
+    
+    
+    // GET: api/rooms/paged?pageNumber=1&pageSize=10
+    [HttpGet("paged")]
+    public async Task<ActionResult<IEnumerable<Room>>> GetRoomsPaged(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        if (pageNumber < 1 || pageSize < 1 || pageSize > 100)
+        {
+            return BadRequest(new
+            {
+                message = "Page number must be at least 1, and page size must be between 1 and 100."
+            });
+        }
+
+        var rooms = await _context.Rooms
+            .OrderBy(room => room.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return Ok(rooms);
+    }
+
 
 
 
