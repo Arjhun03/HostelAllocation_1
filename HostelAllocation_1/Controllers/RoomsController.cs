@@ -199,6 +199,42 @@ public class RoomsController : ControllerBase
         return Ok(rooms);
     }
 
+    
+    
+    // GET: api/rooms/sort?sortBy=monthlyFee&descending=false
+    [HttpGet("sort")]
+    public async Task<ActionResult<IEnumerable<Room>>> SortRooms(
+        [FromQuery] string sortBy = "roomNumber",
+        [FromQuery] bool descending = false)
+    {
+        var query = _context.Rooms.AsQueryable();
+
+        query = sortBy.ToLower() switch
+        {
+            "roomnumber" => descending
+                ? query.OrderByDescending(room => room.RoomNumber)
+                : query.OrderBy(room => room.RoomNumber),
+
+            "monthlyfee" => descending
+                ? query.OrderByDescending(room => room.MonthlyFee)
+                : query.OrderBy(room => room.MonthlyFee),
+
+            _ => null!
+        };
+
+        if (query == null)
+        {
+            return BadRequest(new
+            {
+                message = "sortBy must be roomNumber or monthlyFee."
+            });
+        }
+
+        var rooms = await query.ToListAsync();
+
+        return Ok(rooms);
+    }
+
 
 
 
