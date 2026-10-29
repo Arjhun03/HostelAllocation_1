@@ -15,6 +15,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Student> Students => Set<Student>();
 
+    public DbSet<RoomAllocation> RoomAllocations => Set<RoomAllocation>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -36,6 +38,22 @@ public class ApplicationDbContext : DbContext
 
             entity.Property(room => room.MonthlyFee)
                 .HasColumnType("decimal(18,2)");
+        });
+
+        modelBuilder.Entity<RoomAllocation>(entity =>
+        {
+            entity.HasOne(allocation => allocation.Student)
+                .WithMany()
+                .HasForeignKey(allocation => allocation.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(allocation => allocation.Room)
+                .WithMany()
+                .HasForeignKey(allocation => allocation.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.Property(allocation => allocation.AllocationDate)
+                .IsRequired();
         });
     }
 }
