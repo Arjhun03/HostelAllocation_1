@@ -18,10 +18,20 @@ public class RoomsController : ControllerBase
     }
 
     // GET: api/rooms
+    // GET: api/rooms?availableOnly=true
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Room>>> GetRooms()
+    public async Task<ActionResult<IEnumerable<Room>>> GetRooms(
+        [FromQuery] bool availableOnly = false)
     {
-        var rooms = await _context.Rooms.ToListAsync();
+        var query = _context.Rooms.AsQueryable();
+
+        if (availableOnly)
+        {
+            query = query.Where(room =>
+                room.OccupiedBeds < room.Capacity);
+        }
+
+        var rooms = await query.ToListAsync();
         return Ok(rooms);
     }
 
@@ -33,7 +43,10 @@ public class RoomsController : ControllerBase
 
         if (room == null)
         {
-            return NotFound(new { message = $"Room with ID {id} was not found." });
+            return NotFound(new
+            {
+                message = $"Room with ID {id} was not found."
+            });
         }
 
         return Ok(room);
@@ -54,12 +67,16 @@ public class RoomsController : ControllerBase
         _context.Rooms.Add(room);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetRoom), new { id = room.Id }, room);
+        return CreatedAtAction(
+            nameof(GetRoom),
+            new { id = room.Id },
+            room);
     }
 
     // PUT: api/rooms/1
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateRoom(int id, Room updatedRoom)
+    public async Task<IActionResult> UpdateRoom(
+        int id, Room updatedRoom)
     {
         if (id != updatedRoom.Id)
         {
@@ -81,7 +98,10 @@ public class RoomsController : ControllerBase
 
         if (existingRoom == null)
         {
-            return NotFound(new { message = $"Room with ID {id} was not found." });
+            return NotFound(new
+            {
+                message = $"Room with ID {id} was not found."
+            });
         }
 
         existingRoom.RoomNumber = updatedRoom.RoomNumber;
@@ -91,7 +111,6 @@ public class RoomsController : ControllerBase
         existingRoom.MonthlyFee = updatedRoom.MonthlyFee;
 
         await _context.SaveChangesAsync();
-
         return NoContent();
     }
 
@@ -103,7 +122,10 @@ public class RoomsController : ControllerBase
 
         if (room == null)
         {
-            return NotFound(new { message = $"Room with ID {id} was not found." });
+            return NotFound(new
+            {
+                message = $"Room with ID {id} was not found."
+            });
         }
 
         _context.Rooms.Remove(room);
@@ -111,26 +133,7 @@ public class RoomsController : ControllerBase
 
         return NoContent();
     }
-    
-    // GET: api/rooms
-    // GET: api/rooms?availableOnly=true
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Room>>> GetRooms(
-        [FromQuery] bool availableOnly = false)
-    {
-        var query = _context.Rooms.AsQueryable();
 
-        if (availableOnly)
-        {
-            query = query.Where(room =>
-                room.OccupiedBeds < room.Capacity);
-        }
-
-        var rooms = await query.ToListAsync();
-
-        return Ok(rooms);
-    }
-    
     // GET: api/rooms/type/Shared
     [HttpGet("type/{roomType}")]
     public async Task<ActionResult<IEnumerable<Room>>> GetRoomsByType(
@@ -150,8 +153,7 @@ public class RoomsController : ControllerBase
 
         return Ok(rooms);
     }
-    
-    
+
     // GET: api/rooms/price?minFee=3000&maxFee=7000
     [HttpGet("price")]
     public async Task<ActionResult<IEnumerable<Room>>> GetRoomsByPrice(
@@ -174,8 +176,7 @@ public class RoomsController : ControllerBase
 
         return Ok(rooms);
     }
-    
-    
+
     // GET: api/rooms/paged?pageNumber=1&pageSize=10
     [HttpGet("paged")]
     public async Task<ActionResult<IEnumerable<Room>>> GetRoomsPaged(
@@ -199,8 +200,6 @@ public class RoomsController : ControllerBase
         return Ok(rooms);
     }
 
-    
-    
     // GET: api/rooms/sort?sortBy=monthlyFee&descending=false
     [HttpGet("sort")]
     public async Task<ActionResult<IEnumerable<Room>>> SortRooms(
@@ -209,32 +208,30 @@ public class RoomsController : ControllerBase
     {
         var query = _context.Rooms.AsQueryable();
 
-        query = sortBy.ToLower() switch
+        switch (sortBy.ToLowerInvariant())
         {
-            "roomnumber" => descending
-                ? query.OrderByDescending(room => room.RoomNumber)
-                : query.OrderBy(room => room.RoomNumber),
+            case "roomnumber":
+                query = descending
+                    ? query.OrderByDescending(room => room.RoomNumber)
+                    : query.OrderBy(room => room.RoomNumber);
+                break;
 
-            "monthlyfee" => descending
-                ? query.OrderByDescending(room => room.MonthlyFee)
-                : query.OrderBy(room => room.MonthlyFee),
+            case "monthlyfee":
+                query = descending
+                    ? query.OrderByDescending(room => room.MonthlyFee)
+                    : query.OrderBy(room => room.MonthlyFee);
+                break;
 
-            _ => null!
-        };
-
-        if (query == null)
-        {
-            return BadRequest(new
-            {
-                message = "sortBy must be roomNumber or monthlyFee."
-            });
+            default:
+                return BadRequest(new
+                {
+                    message = "sortBy must be roomNumber or monthlyFee."
+                });
         }
 
         var rooms = await query.ToListAsync();
-
         return Ok(rooms);
     }
-
 
     // GET: api/rooms/statistics
     [HttpGet("statistics")]
@@ -242,11 +239,11 @@ public class RoomsController : ControllerBase
     {
         var totalRooms = await _context.Rooms.CountAsync();
 
-        var totalCapacity = await _context.Rooms
-            .SumAsync(room => (int?)room.Capacity) ?? 0;
+        var totalCapacity =
+            await _context.Rooms.SumAsync(room => (int?)room.Capacity) ?? 0;
 
-        var occupiedBeds = await _context.Rooms
-            .SumAsync(room => (int?)room.OccupiedBeds) ?? 0;
+        var occupiedBeds =
+            await _context.Rooms.SumAsync(room => (int?)room.OccupiedBeds) ?? 0;
 
         var availableBeds = totalCapacity - occupiedBeds;
 
@@ -263,7 +260,4 @@ public class RoomsController : ControllerBase
             OccupancyPercentage = occupancyPercentage
         });
     }
-
-
-
 }

@@ -13,6 +13,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Room> Rooms => Set<Room>();
 
+    public DbSet<Student> Students => Set<Student>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
