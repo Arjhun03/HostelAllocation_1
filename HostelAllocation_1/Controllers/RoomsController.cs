@@ -111,4 +111,24 @@ public class RoomsController : ControllerBase
 
         return NoContent();
     }
+    
+    // GET: api/rooms
+    // GET: api/rooms?availableOnly=true
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Room>>> GetRooms(
+        [FromQuery] bool availableOnly = false)
+    {
+        var query = _context.Rooms.AsQueryable();
+
+        if (availableOnly)
+        {
+            query = query.Where(room =>
+                room.OccupiedBeds < room.Capacity);
+        }
+
+        var rooms = await query.ToListAsync();
+
+        return Ok(rooms);
+    }
+
 }
