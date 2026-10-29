@@ -54,6 +54,9 @@ public class RoomAllocationsController : ControllerBase
     public async Task<ActionResult<RoomAllocation>> AllocateRoom(
         RoomAllocation allocation)
     {
+        await using var transaction =
+            await _context.Database.BeginTransactionAsync();
+
         var student = await _context.Students
             .FindAsync(allocation.StudentId);
 
@@ -105,6 +108,7 @@ public class RoomAllocationsController : ControllerBase
         _context.RoomAllocations.Add(allocation);
 
         await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return CreatedAtAction(
             nameof(GetAllocation),
@@ -116,6 +120,9 @@ public class RoomAllocationsController : ControllerBase
     [HttpPut("{id:int}/vacate")]
     public async Task<IActionResult> VacateRoom(int id)
     {
+        await using var transaction =
+            await _context.Database.BeginTransactionAsync();
+
         var allocation = await _context.RoomAllocations
             .Include(a => a.Room)
             .FirstOrDefaultAsync(a => a.Id == id);
@@ -144,14 +151,14 @@ public class RoomAllocationsController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return Ok(new
         {
             message = "Room vacated successfully."
         });
     }
-    
-    
+
     // GET: api/roomallocations/student/1
     [HttpGet("student/{studentId:int}")]
     public async Task<ActionResult<IEnumerable<RoomAllocation>>>
@@ -176,5 +183,4 @@ public class RoomAllocationsController : ControllerBase
 
         return Ok(history);
     }
-
 }
