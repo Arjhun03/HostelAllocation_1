@@ -236,6 +236,34 @@ public class RoomsController : ControllerBase
     }
 
 
+    // GET: api/rooms/statistics
+    [HttpGet("statistics")]
+    public async Task<IActionResult> GetRoomStatistics()
+    {
+        var totalRooms = await _context.Rooms.CountAsync();
+
+        var totalCapacity = await _context.Rooms
+            .SumAsync(room => (int?)room.Capacity) ?? 0;
+
+        var occupiedBeds = await _context.Rooms
+            .SumAsync(room => (int?)room.OccupiedBeds) ?? 0;
+
+        var availableBeds = totalCapacity - occupiedBeds;
+
+        var occupancyPercentage = totalCapacity > 0
+            ? Math.Round((double)occupiedBeds / totalCapacity * 100, 2)
+            : 0;
+
+        return Ok(new
+        {
+            TotalRooms = totalRooms,
+            TotalCapacity = totalCapacity,
+            OccupiedBeds = occupiedBeds,
+            AvailableBeds = availableBeds,
+            OccupancyPercentage = occupancyPercentage
+        });
+    }
+
 
 
 }
